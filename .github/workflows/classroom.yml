@@ -1,0 +1,60 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Sanity Checks
+      id: sanity-checks
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Sanity Checks
+        setup-command: ''
+        command: "/bin/bash sanity-checks.sh"
+        timeout: 10
+        max-score: 10
+    - name: Header Validation
+      id: header-validation
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Header Validation
+        setup-command: ''
+        command: "/bin/bash header-checks.sh"
+        timeout: 1
+        max-score: 30
+    - name: Coinbase Transaction Validation
+      id: coinbase-transaction-validation
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Coinbase Transaction Validation
+        setup-command: ''
+        command: "/bin/bash coinbase-checks.sh"
+        timeout: 1
+        max-score: 30
+    - name: Block Validation
+      id: block-validation
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Block Validation
+        setup-command: ''
+        command: "/bin/bash block-checks.sh"
+        timeout: 1
+        max-score: 30
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        SANITY-CHECKS_RESULTS: "${{steps.sanity-checks.outputs.result}}"
+        HEADER-VALIDATION_RESULTS: "${{steps.header-validation.outputs.result}}"
+        COINBASE-TRANSACTION-VALIDATION_RESULTS: "${{steps.coinbase-transaction-validation.outputs.result}}"
+        BLOCK-VALIDATION_RESULTS: "${{steps.block-validation.outputs.result}}"
+      with:
+        runners: sanity-checks,header-validation,coinbase-transaction-validation,block-validation
